@@ -14,7 +14,6 @@ public class GerenciadorProdutos {
 
     public void criar(Produto produto){
         produto.setId(proximoId);
-        validarProduto(produto);
         produtos.add(produto);
         proximoId++;
     }
