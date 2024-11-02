@@ -1,10 +1,12 @@
 package com.loja.ui;
 
+import com.loja.exception.ProdutoException;
 import com.loja.exception.ValidacaoException;
 import com.loja.gerenciador.GerenciadorProdutos;
 import com.loja.modelo.Produto;
 
 import java.util.InputMismatchException;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class MenuProdutos {
@@ -20,7 +22,6 @@ public class MenuProdutos {
         while(!produtoCadastrado){
             try{
                 Produto produto = requisitarDados();
-                gerenciador.validarProduto(produto);
                 gerenciador.criar(produto);
                 System.out.println("Produto cadastrado com sucesso!");
                 produtoCadastrado = true;
@@ -31,48 +32,82 @@ public class MenuProdutos {
 
     }
     public Produto requisitarDados(){
-        System.out.print("Nome do produto: ");
-        String nome = scanner.nextLine().trim();
-
-       double preco = solicitarPreco();
-       int quantidadeEstoque = solicitarQuantidade();
-
-        System.out.print("Categoria: ");
-        String categoria = scanner.nextLine().trim();
+        String nome = lerEntradaString("Nome do produto: ");
+        double preco = lerEntradaDouble("Preço: ");
+        int quantidadeEstoque = lerEntradaInteira("Quantidade em estoque: ");
+        String categoria = lerEntradaString("Categoria: ");
 
         return new Produto(nome, preco, quantidadeEstoque, categoria);
     }
-    public double solicitarPreco(){
-        boolean precoValido =  false;
-        double preco = 0.0;
-
-        while(!precoValido){
-            System.out.print("Preço: ");
+    private String lerEntradaString(String mensagem){
+        System.out.print(mensagem);
+        return scanner.nextLine();
+    }
+    private double lerEntradaDouble(String mensagem){
+        boolean valorValido = false;
+        double valor = 0.0;
+        while(!valorValido){
+            System.out.print(mensagem);
             try{
-                preco = scanner.nextDouble();
-                precoValido = true;
-            }catch (InputMismatchException e){
-                System.out.println("Entrada inválida. Por favor, digite um número válido para o preço.");
-                scanner.nextLine();
+                valor = Double.parseDouble(scanner.nextLine());
+                valorValido = true;
+            }catch (NumberFormatException e){
+                System.out.println("Entrada inválida. Por favor, digite um número decimal");
             }
         }
-        return preco;
+        return valor;
     }
-    public int solicitarQuantidade(){
-        boolean quantidadeValida =  false;
-        int quantidade = 0;
 
-        while(!quantidadeValida){
-            System.out.print("Preço: ");
+    private int lerEntradaInteira(String mensagem){
+        boolean valorValido =  false;
+        int valor = 0;
+
+        while(!valorValido){
+            System.out.print(mensagem);
             try{
-                quantidade = scanner.nextInt();
-                quantidadeValida = true;
-            }catch (InputMismatchException e){
-                System.out.println("Entrada inválida. Por favor, digite um número válido para a quantidade.");
-                scanner.nextLine();
+                valor = Integer.parseInt(scanner.nextLine());
+                valorValido = true;
+            }catch (NumberFormatException e){
+                System.out.println("Entrada inválida. Por favor, digite um número inteiro.");
             }
         }
-        return quantidade;
+        return valor;
     }
+    private void buscarProduto(){
+        System.out.println(buscarProdutoPorId());
+    }
+    public Produto buscarProdutoPorId(){
+        while(true){
+            try{
+                int id = lerEntradaInteira("Id do produto: ");
+                Optional<Produto> produto = gerenciador.buscarPorId(id);
+                if(produto.isEmpty()){
+                    throw new ProdutoException("Produto com id " + id + " não encontrado.");
+                }
+               return produto.get();
+            }catch(ProdutoException e){
+                System.out.println(e.getMessage() + " Insira um id válido.");
+            }
+        }
+    }
+    private void listarProdutos(){
+        if(gerenciador.listarTodos().isEmpty()){
+            System.out.println("Lista de produtos vazia");
+        }else{
+            System.out.println(gerenciador.listarTodos());
+        }
+    }
+    private void atualizarProduto(){
+        Produto produtoExistente = buscarProdutoPorId();
+        Produto novoProduto = requisitarDados();
+        novoProduto.setId(produtoExistente.getId());
+
+        if(gerenciador.atualizar(novoProduto)){
+            System.out.println("Produto atualizado com sucesso!");
+        }else{
+            System.out.println("Erro ao atualizar produto");
+        }
+    }
+
 
 }

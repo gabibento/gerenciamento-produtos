@@ -9,45 +9,42 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class GerenciadorProdutos {
-    private List<Produto> produtos;
+    private List<Produto> produtos = new ArrayList<>();
     private int proximoId = 1;
 
     public void criar(Produto produto){
+        validarProduto(produto);
         produto.setId(proximoId);
         produtos.add(produto);
         proximoId++;
     }
-    public Produto buscarPorId(int id){
+    public Optional<Produto> buscarPorId(int id) {
         return produtos.stream()
                 .filter(produto -> produto.getId() == id)
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
     public List<Produto> listarTodos(){
         return new ArrayList<>(produtos);
     }
     public boolean atualizar(Produto produto){
-        Produto produtoEncontrado = buscarPorId(produto.getId());
+        Optional<Produto> produtoEncontrado = buscarPorId(produto.getId());
 
-        if(produtoEncontrado != null){
+        if(produtoEncontrado.isPresent()){
             validarProduto(produto);
 
-            produtoEncontrado.setNome(produto.getNome());
-            produtoEncontrado.setPreco(produto.getPreco());
-            produtoEncontrado.setCategoria(produto.getCategoria());
-            produtoEncontrado.setQuantidadeEstoque(produto.getQuantidadeEstoque());
+            Produto produtoAtualizado = produtoEncontrado.get();
+
+            produtoAtualizado.setNome(produto.getNome());
+            produtoAtualizado.setPreco(produto.getPreco());
+            produtoAtualizado.setCategoria(produto.getCategoria());
+            produtoAtualizado.setQuantidadeEstoque(produto.getQuantidadeEstoque());
 
             return true;
         }
         return false;
     }
     public boolean deletar(int id){
-        Produto produto = buscarPorId(id);
-        if(produto != null){
-            produtos.remove(produto);
-            return true;
-        }
-        return false;
+        return produtos.removeIf(produto -> produto.getId() == id);
     }
     public List<Produto> buscarPorNome(String nome){
         return produtos.stream()
