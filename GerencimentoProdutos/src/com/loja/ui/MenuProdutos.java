@@ -14,7 +14,31 @@ public class MenuProdutos {
     private GerenciadorProdutos gerenciador = new GerenciadorProdutos();
 
     public void exibirMenu(){
-
+        while(true){
+            System.out.println("Opções:\n" +
+                    "1. Cadastrar Produto\n" +
+                    "2. Buscar Produto por ID\n" +
+                    "3. Listar Todos os Produtos\n" +
+                    "4. Atualizar Produto\n" +
+                    "5. Deletar Produto\n" +
+                    "6. Buscar por Nome\n" +
+                    "7. Buscar por Categoria\n" +
+                    "8. Sair\n");
+            int opcao = lerEntradaInteira("Escolha uma opção: ");
+            switch (opcao){
+                case 1 -> cadastrarProduto();
+                case 2 -> buscarProduto();
+                case 3 -> listarProdutos();
+                case 4 -> atualizarProduto();
+                case 5 -> deletarProduto();
+                case 6 -> buscarPorNome();
+                case 7 -> buscarPorCategoria();
+                case 8 -> {
+                    System.out.println("Saindo do menu!");
+                    return;
+                }
+            }
+        }
     }
     private void cadastrarProduto(){
         boolean produtoCadastrado = false;
@@ -76,17 +100,18 @@ public class MenuProdutos {
     private void buscarProduto(){
         System.out.println(buscarProdutoPorId());
     }
-    public Produto buscarProdutoPorId(){
+    public Optional<Produto> buscarProdutoPorId(){
         while(true){
             try{
                 int id = lerEntradaInteira("Id do produto: ");
+                if(id == 0) return Optional.empty();
                 Optional<Produto> produto = gerenciador.buscarPorId(id);
                 if(produto.isEmpty()){
                     throw new ProdutoException("Produto com id " + id + " não encontrado.");
                 }
-               return produto.get();
+               return produto;
             }catch(ProdutoException e){
-                System.out.println(e.getMessage() + " Insira um id válido.");
+                System.out.println(e.getMessage() + " Insira um id válido ou digite 0 para cancelar");
             }
         }
     }
@@ -98,33 +123,38 @@ public class MenuProdutos {
         }
     }
     private void atualizarProduto(){
-        Produto produtoExistente = buscarProdutoPorId();
+        Optional<Produto> produtoExistente = buscarProdutoPorId();
         Produto novoProduto = requisitarDados();
-        novoProduto.setId(produtoExistente.getId());
+        if(produtoExistente.isPresent()){
+            novoProduto.setId(produtoExistente.get().getId());
 
-        if(gerenciador.atualizar(novoProduto)){
-            System.out.println("Produto atualizado com sucesso!");
-        }else{
-            System.out.println("Erro ao atualizar produto");
+            if(gerenciador.atualizar(novoProduto)){
+                System.out.println("Produto atualizado com sucesso!");
+            }else{
+                System.out.println("Erro ao atualizar produto");
+            }
         }
+
     }
     private void deletarProduto(){
-        Produto produto = buscarProdutoPorId();
-        int entrada = lerEntradaInteira("Tem certeza que deseja deletar o produto com id " + produto.getId() + "? Digite 1 para 'sim' ou 2 para 'não'.");
+        Optional<Produto> produto = buscarProdutoPorId();
+        if(produto.isPresent()){
+            int entrada = lerEntradaInteira("Tem certeza que deseja deletar o produto com id " + produto.get().getId() + "? Digite 1 para 'sim' ou 2 para 'não'.");
 
-        while(true){
-            if(entrada == 1){
-                if(gerenciador.deletar(produto.getId())){
-                    System.out.println("Produto deletado com sucesso! ");
+            while(true){
+                if(entrada == 1){
+                    if(gerenciador.deletar(produto.get().getId())){
+                        System.out.println("Produto deletado com sucesso! ");
+                    }else{
+                        System.out.println("Erro ao deletar produto. Por favor tente novamente");
+                    }
+                    break;
+                }else if(entrada == 2){
+                    System.out.println("Remoção cancelada!");
+                    break;
                 }else{
-                    System.out.println("Erro ao deletar produto. Por favor tente novamente");
+                    entrada = lerEntradaInteira("Entrada inválida! Digite 1 para remover o produto e 2 para cancelar remoção");
                 }
-                break;
-            }else if(entrada == 2){
-                System.out.println("Remoção cancelada!");
-                break;
-            }else{
-                entrada = lerEntradaInteira("Entrada inválida! Digite 1 para remover o produto e 2 para cancelar remoção")
             }
         }
     }
@@ -134,6 +164,14 @@ public class MenuProdutos {
             System.out.println("Não há produtos com o nome informado");
         }else{
             gerenciador.buscarPorNome(nome).forEach(System.out::println);
+        }
+    }
+    public void buscarPorCategoria(){
+        String categoria = lerEntradaString("Categoria: ");
+        if(gerenciador.buscarPorCategoria(categoria).isEmpty()){
+            System.out.println("Não há produtos com a categoria informada");
+        }else{
+            gerenciador.buscarPorCategoria(categoria).forEach(System.out::println);
         }
     }
 
