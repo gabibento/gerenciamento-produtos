@@ -94,7 +94,7 @@ public class MenuProdutos {
         if(gerenciador.listarTodos().isEmpty()){
             System.out.println("Lista de produtos vazia");
         }else{
-            System.out.println(gerenciador.listarTodos());
+            gerenciador.listarTodos().forEach(System.out::println);
         }
     }
     private void atualizarProduto(){
@@ -106,6 +106,34 @@ public class MenuProdutos {
             System.out.println("Produto atualizado com sucesso!");
         }else{
             System.out.println("Erro ao atualizar produto");
+        }
+    }
+    private void deletarProduto(){
+        Produto produto = buscarProdutoPorId();
+        int entrada = lerEntradaInteira("Tem certeza que deseja deletar o produto com id " + produto.getId() + "? Digite 1 para 'sim' ou 2 para 'não'.");
+
+        while(true){
+            if(entrada == 1){
+                if(gerenciador.deletar(produto.getId())){
+                    System.out.println("Produto deletado com sucesso! ");
+                }else{
+                    System.out.println("Erro ao deletar produto. Por favor tente novamente");
+                }
+                break;
+            }else if(entrada == 2){
+                System.out.println("Remoção cancelada!");
+                break;
+            }else{
+                entrada = lerEntradaInteira("Entrada inválida! Digite 1 para remover o produto e 2 para cancelar remoção")
+            }
+        }
+    }
+    private void buscarPorNome(){
+        String nome = lerEntradaString("Nome do produto: ");
+        if(gerenciador.buscarPorNome(nome).isEmpty()){
+            System.out.println("Não há produtos com o nome informado");
+        }else{
+            gerenciador.buscarPorNome(nome).forEach(System.out::println);
         }
     }
 
