@@ -10,13 +10,13 @@ import java.util.Optional;
 import java.util.Scanner;
 
 public class MenuProdutos {
-    private Scanner scanner = new Scanner(System.in);
-    private GerenciadorProdutos gerenciador = new GerenciadorProdutos();
+    private final Scanner scanner = new Scanner(System.in);
+    private final GerenciadorProdutos gerenciador = new GerenciadorProdutos();
 
     public void exibirMenu() throws InterruptedException {
         while(true){
             Thread.sleep(2000);
-            System.out.println("=== Menu ===");
+            System.out.println("\n=== Menu ===");
             System.out.println(
                     "1. Cadastrar Produto\n" +
                     "2. Buscar Produto por ID\n" +
@@ -25,7 +25,8 @@ public class MenuProdutos {
                     "5. Deletar Produto\n" +
                     "6. Buscar por Nome\n" +
                     "7. Buscar por Categoria\n" +
-                    "8. Sair\n");
+                    "8. Buscar por Faixa de Preço\n" +
+                    "9. Sair\n");
             int opcao = lerEntradaInteira("Escolha uma opção: ");
             switch (opcao){
                 case 1 -> cadastrarProduto();
@@ -35,7 +36,8 @@ public class MenuProdutos {
                 case 5 -> deletarProduto();
                 case 6 -> buscarPorNome();
                 case 7 -> buscarPorCategoria();
-                case 8 -> {
+                case 8 -> buscarPorFaixaPreco();
+                case 9 -> {
                     System.out.println("Saindo do sistema!");
                     return;
                 }
@@ -225,6 +227,17 @@ public class MenuProdutos {
         }else{
             gerenciador.buscarPorCategoria(categoria).forEach(System.out::println);
         }
+    }
+    private void buscarPorFaixaPreco(){
+        System.out.println("=== Buscar por faixa de preço ===");
+        double precoMin = lerEntradaDouble("Preço mínimo: ");
+        double precoMax = lerEntradaDouble("Preço maximo: ");
+        if(gerenciador.buscarPorFaixaPreco(precoMin, precoMax).isEmpty()){
+            System.out.println("Não há produtos com o preço entre R$" + precoMin + " e R$" + precoMax);
+        }else{
+            gerenciador.buscarPorFaixaPreco(precoMin, precoMax).forEach(System.out::println);
+        }
+
     }
 
 

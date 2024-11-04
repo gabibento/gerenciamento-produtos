@@ -56,6 +56,11 @@ public class GerenciadorProdutos {
                 .filter(produto -> produto.getCategoria().equalsIgnoreCase(categoria))
                 .toList();
     }
+    public List<Produto> buscarPorFaixaPreco(double precoMin, double precoMax){
+        return produtos.stream()
+                .filter(produto -> produto.getPreco() >= precoMin && produto.getPreco() <= precoMax)
+                .toList();
+    }
     public void validarProduto(Produto produto){
         validarNome(produto.getNome());
         validarPreco(produto.getPreco());
