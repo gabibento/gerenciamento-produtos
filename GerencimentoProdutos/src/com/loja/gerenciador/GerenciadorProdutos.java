@@ -57,19 +57,31 @@ public class GerenciadorProdutos {
                 .toList();
     }
     public void validarProduto(Produto produto){
-        if (produto.getNome() == null || produto.getNome().isEmpty()) {
+        validarNome(produto.getNome());
+        validarPreco(produto.getPreco());
+        validarPreco(produto.getPreco());
+        validarCategoria(produto.getCategoria());
+    }
+    public void validarNome(String nome){
+        if (nome == null || nome.isEmpty()) {
             throw new ValidacaoException("O nome do produto não pode ser vazio.");
         }
-        if (produto.getNome().length() < 2) {
+        if (nome.length() < 2) {
             throw new ValidacaoException("O nome do produto deve ter pelo menos 2 caracteres.");
         }
-        if(produto.getPreco() <= 0){
+    }
+    public void validarPreco(double preco){
+        if(preco <= 0){
             throw new ValidacaoException("O preço do produto deve ser maior que zero");
         }
-        if (produto.getQuantidadeEstoque() < 0){
+    }
+    public void validarQuantidade(int quantidade){
+        if (quantidade < 0){
             throw new ValidacaoException("A quantidade em estoque do produto não pode ser menor que zero");
         }
-        if(produto.getCategoria() == null || produto.getCategoria().isEmpty()){
+    }
+    public void validarCategoria(String categoria){
+        if(categoria == null || categoria.isEmpty()){
             throw new ValidacaoException("A categoria do produto não pode ser vazia");
         }
     }
