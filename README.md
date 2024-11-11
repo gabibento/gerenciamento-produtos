@@ -45,6 +45,3 @@ O projeto está organizado da seguinte maneira:
 - **Produto**: Modelo de dados do produto, contendo informações como nome, preço, quantidade e categoria.
 - **ProdutoException e ValidacaoException**: Classes de exceção personalizadas para tratar erros específicos no sistema.
 
-## Licença
-
-Este projeto é de código aberto e está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
