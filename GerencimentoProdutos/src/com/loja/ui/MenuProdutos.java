@@ -17,12 +17,6 @@ public class MenuProdutos {
     private final Scanner scanner = new Scanner(System.in);
     private final GerenciadorProdutos gerenciador = new GerenciadorProdutos();
 
-    // Cores para facilitar a personalização da saída no terminal
-    private static final String RESET = "\u001B[0m";
-    private static final String RED = "\u001B[31m";
-    private static final String GREEN = "\u001B[32m";
-    private static final String YELLOW = "\u001B[33m";
-    private static final String BLUE = "\u001B[34m";
 
     /**
      * Exibe o menu de opções e gerencia as interações do usuário.
@@ -31,9 +25,9 @@ public class MenuProdutos {
     public void exibirMenu() {
         while (true) {
             // Exibe o cabeçalho do menu com cores
-            System.out.println(BLUE + "\n=============================");
+            System.out.println(CoresConsole.BLUE + "\n=============================");
             System.out.println("        MENU DE PRODUTOS        ");
-            System.out.println("=============================" + RESET);
+            System.out.println("=============================" + CoresConsole.RESET);
             System.out.println("1. Cadastrar Produto");
             System.out.println("2. Buscar Produto por ID");
             System.out.println("3. Listar Todos os Produtos");
@@ -58,10 +52,10 @@ public class MenuProdutos {
                 case 7 -> buscarPorCategoria();
                 case 8 -> buscarPorFaixaPreco();
                 case 9 -> {
-                    System.out.println(YELLOW + "Saindo do sistema!" + RESET);
+                    System.out.println(CoresConsole.YELLOW + "Saindo do sistema!" + CoresConsole.RESET);
                     return; // Encerra o menu
                 }
-                default -> System.out.println(RED + "Opção inválida" + RESET); // Caso de opção inválida
+                default -> System.out.println(CoresConsole.RED + "Opção inválida" + CoresConsole.RESET); // Caso de opção inválida
             }
             // Pausa para o usuário continuar após cada operação
             pausaParaContinuar();
@@ -73,19 +67,19 @@ public class MenuProdutos {
      */
     private void cadastrarProduto() {
         boolean produtoCadastrado = false;
-        System.out.println(YELLOW + "=== Cadastro de Produto ===" + RESET);
+        System.out.println(CoresConsole.YELLOW + "=== Cadastro de Produto ===" + CoresConsole.RESET);
 
         // Loop até que o produto seja cadastrado corretamente
         while (!produtoCadastrado) {
             try {
                 Produto produto = requisitarDados(); // Solicita os dados para o novo produto
                 gerenciador.criar(produto); // Chama o gerenciador para cadastrar o produto
-                System.out.println(GREEN + "Produto cadastrado com sucesso!" + RESET);
+                System.out.println(CoresConsole.GREEN + "Produto cadastrado com sucesso!" + CoresConsole.RESET);
                 System.out.println("ID gerado: " + produto.getId());
                 produtoCadastrado = true; // Produto cadastrado com sucesso
             } catch (ValidacaoException e) {
                 // Exibe mensagem de erro caso a validação falhe
-                System.out.println(RED + "Erro ao cadastrar produto: " + e.getMessage() + RESET);
+                System.out.println(CoresConsole.RED + "Erro ao cadastrar produto: " + e.getMessage() + CoresConsole.RESET);
             }
         }
     }
@@ -106,7 +100,7 @@ public class MenuProdutos {
                 validacao.accept(valor);
                 return valor;
             } catch (ValidacaoException e) {
-                System.out.println(RED + e.getMessage() + RESET);
+                System.out.println(CoresConsole.RED + e.getMessage() + CoresConsole.RESET);
             }
         }
     }
@@ -148,9 +142,9 @@ public class MenuProdutos {
      * Busca um produto pelo seu ID, utilizando um método auxiliar.
      */
     private void buscarProduto() {
-        System.out.println(YELLOW + "=== Busca de produto ===" + RESET);
+        System.out.println(CoresConsole.YELLOW + "=== Busca de produto ===" + CoresConsole.RESET);
         Optional<Produto> produto = buscarProdutoPorId();
-        System.out.println(produto.map(Produto::toString).orElse(RED + "Produto não encontrado!" + RESET));
+        System.out.println(produto.map(Produto::toString).orElse(CoresConsole.RED + "Produto não encontrado!" + CoresConsole.RESET));
     }
 
     /**
@@ -163,12 +157,11 @@ public class MenuProdutos {
             int id = lerEntradaInteira("Id do produto (ou 0 para cancelar): ");
             if (id == 0) return Optional.empty(); // Se ID for 0, cancela a operação
 
-            Optional<Produto> produto = gerenciador.buscarPorId(id); // Busca produto pelo ID
-            if (produto.isPresent()) {
-                return produto; // Retorna o produto encontrado
-            } else {
-                // Mensagem de erro caso o produto não seja encontrado
-                System.out.println(RED + "Produto com id " + id + " não encontrado." + RESET);
+            try{
+                Produto produto = gerenciador.buscarPorId(id); // Busca produto pelo ID
+                return Optional.ofNullable(produto);
+            }catch (ProdutoException e){
+                System.out.println(e.getMessage());
             }
         }
     }
@@ -177,11 +170,11 @@ public class MenuProdutos {
      * Lista todos os produtos cadastrados.
      */
     private void listarProdutos() {
-        System.out.println(YELLOW + "=== Lista de produtos ===" + RESET);
+        System.out.println(CoresConsole.YELLOW + "=== Lista de produtos ===" + CoresConsole.RESET);
         // Exibe todos os produtos ou mensagem caso a lista esteja vazia
         gerenciador.listarTodos().forEach(System.out::println);
         if (gerenciador.listarTodos().isEmpty()) {
-            System.out.println(YELLOW + "Lista de produtos vazia" + RESET);
+            System.out.println(CoresConsole.YELLOW + "Lista de produtos vazia" + CoresConsole.RESET);
         }
     }
 
@@ -189,19 +182,19 @@ public class MenuProdutos {
      * Atualiza um produto existente, solicitando os novos dados e validando a operação.
      */
     private void atualizarProduto() {
-        System.out.println(YELLOW + "=== Atualizar produto ===" + RESET);
+        System.out.println(CoresConsole.YELLOW + "=== Atualizar produto ===" + CoresConsole.RESET);
         Optional<Produto> produtoExistente = buscarProdutoPorId(); // Busca o produto existente
         if (produtoExistente.isPresent()) {
             // Solicita os novos dados do produto
             Produto novoProduto = requisitarDados();
             novoProduto.setId(produtoExistente.get().getId()); // Mantém o ID do produto original
             if (gerenciador.atualizar(novoProduto)) {
-                System.out.println(GREEN + "Produto atualizado com sucesso!" + RESET);
+                System.out.println(CoresConsole.GREEN + "Produto atualizado com sucesso!" + CoresConsole.RESET);
             } else {
-                System.out.println(RED + "Erro ao atualizar produto" + RESET);
+                System.out.println(CoresConsole.RED + "Erro ao atualizar produto" + CoresConsole.RESET);
             }
         } else {
-            System.out.println(RED + "Atualização cancelada" + RESET);
+            System.out.println(CoresConsole.RED + "Atualização cancelada" + CoresConsole.RESET);
         }
     }
 
@@ -209,18 +202,18 @@ public class MenuProdutos {
      * Deleta um produto, após confirmação do usuário.
      */
     private void deletarProduto() {
-        System.out.println(YELLOW + "=== Deletar produto ===" + RESET);
+        System.out.println(CoresConsole.YELLOW + "=== Deletar produto ===" + CoresConsole.RESET);
         Optional<Produto> produto = buscarProdutoPorId(); // Busca o produto por ID
         if (produto.isPresent()) {
             int entrada = lerEntradaInteira("Tem certeza que deseja deletar o produto? (1=Sim, 2=Não): ");
             if (entrada == 1) {
                 gerenciador.deletar(produto.get().getId());
-                System.out.println(GREEN + "Produto deletado com sucesso!" + RESET);
+                System.out.println(CoresConsole.GREEN + "Produto deletado com sucesso!" + CoresConsole.RESET);
             } else {
-                System.out.println(YELLOW + "Remoção cancelada!" + RESET);
+                System.out.println(CoresConsole.YELLOW + "Remoção cancelada!" + CoresConsole.RESET);
             }
         } else {
-            System.out.println(RED + "Produto não encontrado para exclusão." + RESET);
+            System.out.println(CoresConsole.RED + "Produto não encontrado para exclusão." + CoresConsole.RESET);
         }
     }
 
@@ -228,11 +221,11 @@ public class MenuProdutos {
      * Busca produtos por nome.
      */
     private void buscarPorNome() {
-        System.out.println(YELLOW + "=== Buscar produto por nome ===" + RESET);
+        System.out.println(CoresConsole.YELLOW + "=== Buscar produto por nome ===" + CoresConsole.RESET);
         String nome = lerEntradaString("Nome do produto: ");
         gerenciador.buscarPorNome(nome).forEach(System.out::println);
         if (gerenciador.buscarPorNome(nome).isEmpty()) {
-            System.out.println(YELLOW + "Não há produtos que contenha o nome " + nome + RESET);
+            System.out.println(CoresConsole.YELLOW + "Não há produtos que contenha o nome " + nome + CoresConsole.RESET);
         }
     }
 
@@ -240,11 +233,11 @@ public class MenuProdutos {
      * Busca produtos por categoria.
      */
     private void buscarPorCategoria() {
-        System.out.println(YELLOW + "=== Buscar por categoria ===" + RESET);
+        System.out.println(CoresConsole.YELLOW + "=== Buscar por categoria ===" + CoresConsole.RESET);
         String categoria = lerEntradaString("Categoria: ");
         gerenciador.buscarPorCategoria(categoria).forEach(System.out::println);
         if (gerenciador.buscarPorCategoria(categoria).isEmpty()) {
-            System.out.println(YELLOW + "Não há produtos com a categoria " + categoria + RESET);
+            System.out.println(CoresConsole.YELLOW + "Não há produtos com a categoria " + categoria + CoresConsole.RESET);
         }
     }
 
@@ -252,12 +245,12 @@ public class MenuProdutos {
      * Busca produtos dentro de uma faixa de preço.
      */
     private void buscarPorFaixaPreco() {
-        System.out.println(YELLOW + "=== Buscar por faixa de preço ===" + RESET);
+        System.out.println(CoresConsole.YELLOW + "=== Buscar por faixa de preço ===" + CoresConsole.RESET);
         double precoMin = lerEntradaDouble("Preço mínimo: ");
         double precoMax = lerEntradaDouble("Preço máximo: ");
         gerenciador.buscarPorFaixaPreco(precoMin, precoMax).forEach(System.out::println);
         if (gerenciador.buscarPorFaixaPreco(precoMin, precoMax).isEmpty()) {
-            System.out.println(YELLOW + "Não há produtos com essa faixa de preço " + RESET);
+            System.out.println(CoresConsole.YELLOW + "Não há produtos com essa faixa de preço " + CoresConsole.RESET);
         }
     }
 
@@ -273,7 +266,7 @@ public class MenuProdutos {
                 System.out.print(mensagem);
                 return Integer.parseInt(scanner.nextLine());
             } catch (NumberFormatException e) {
-                System.out.println(RED + "Entrada inválida. Por favor, digite um número inteiro." + RESET);
+                System.out.println(CoresConsole.RED + "Entrada inválida. Por favor, digite um número inteiro." + CoresConsole.RESET);
             }
         }
     }
@@ -284,7 +277,7 @@ public class MenuProdutos {
                 System.out.print(mensagem);
                 return Double.parseDouble(scanner.nextLine());
             } catch (NumberFormatException e) {
-                System.out.println(RED + "Entrada inválida. Por favor, digite um número decimal." + RESET);
+                System.out.println(CoresConsole.RED + "Entrada inválida. Por favor, digite um número decimal." + CoresConsole.RESET);
             }
         }
     }
@@ -293,7 +286,7 @@ public class MenuProdutos {
      * Pausa a execução e aguarda o usuário pressionar Enter para continuar.
      */
     private void pausaParaContinuar() {
-        System.out.println(YELLOW + "\nPressione Enter para continuar..." + RESET);
+        System.out.println(CoresConsole.YELLOW + "\nPressione Enter para continuar..." + CoresConsole.RESET);
         scanner.nextLine();
     }
 

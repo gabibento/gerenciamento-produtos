@@ -5,7 +5,4 @@ public class ProdutoException extends RuntimeException{
         super(mensagem);
     }
 
-    public ProdutoException(String mensagem, Throwable causa) {
-        super(mensagem, causa);
-    }
 }

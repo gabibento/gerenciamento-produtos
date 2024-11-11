@@ -1,12 +1,12 @@
 package com.loja.gerenciador;
 
+import com.loja.exception.ProdutoException;
 import com.loja.exception.ValidacaoException;
 import com.loja.modelo.Produto;
+import com.loja.ui.CoresConsole;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Classe responsável pelo gerenciamento dos produtos na loja.
@@ -36,15 +36,16 @@ public class GerenciadorProdutos {
 
     /**
      * Busca um produto pelo seu ID.
-     * Retorna um Optional, que pode conter o produto caso encontrado ou estar vazio.
+     * Retorna um Produto, que pode conter o produto caso encontrado ou lançar uma ProdutoException.
      *
      * @param id O ID do produto a ser buscado
-     * @return Optional contendo o produto, se encontrado
+     * @return Produto se encontrado ou ProdutoException
      */
-    public Optional<Produto> buscarPorId(int id) {
+    public Produto buscarPorId(int id) {
         return produtos.stream()
                 .filter(produto -> produto.getId() == id)
-                .findFirst();
+                .findFirst()
+                .orElseThrow(() -> new ProdutoException(CoresConsole.RED + "Produto com id " + id + " não encontrado." + CoresConsole.RESET));
     }
 
     /**
@@ -65,23 +66,24 @@ public class GerenciadorProdutos {
      */
     public boolean atualizar(Produto produto) {
         // Busca o produto pelo ID
-        Optional<Produto> produtoEncontrado = buscarPorId(produto.getId());
+        Produto produtoEncontrado = buscarPorId(produto.getId());
 
-        if (produtoEncontrado.isPresent()) {
+       try {
             // Valida o produto antes de atualizar
             validarProduto(produto);
 
-            Produto produtoAtualizado = produtoEncontrado.get();
+            Produto produtoAtualizado = produtoEncontrado;
 
             // Atualiza os dados do produto encontrado
             produtoAtualizado.setNome(produto.getNome());
             produtoAtualizado.setPreco(produto.getPreco());
             produtoAtualizado.setCategoria(produto.getCategoria());
             produtoAtualizado.setQuantidadeEstoque(produto.getQuantidadeEstoque());
-
             return true;
-        }
-        return false;
+
+        } catch (ProdutoException e){
+           return false;
+       }
     }
 
     /**
