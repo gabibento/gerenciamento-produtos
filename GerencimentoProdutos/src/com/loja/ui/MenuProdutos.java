@@ -8,25 +8,33 @@ import com.loja.modelo.Produto;
 import java.util.InputMismatchException;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class MenuProdutos {
     private final Scanner scanner = new Scanner(System.in);
     private final GerenciadorProdutos gerenciador = new GerenciadorProdutos();
 
+    private static final String RESET = "\u001B[0m";
+    private static final String RED = "\u001B[31m";
+    private static final String GREEN = "\u001B[32m";
+    private static final String YELLOW = "\u001B[33m";
+    private static final String BLUE = "\u001B[34m";
+
     public void exibirMenu() throws InterruptedException {
         while(true){
-            Thread.sleep(2000);
-            System.out.println("\n=== Menu ===");
-            System.out.println(
-                    "1. Cadastrar Produto\n" +
-                    "2. Buscar Produto por ID\n" +
-                    "3. Listar Todos os Produtos\n" +
-                    "4. Atualizar Produto\n" +
-                    "5. Deletar Produto\n" +
-                    "6. Buscar por Nome\n" +
-                    "7. Buscar por Categoria\n" +
-                    "8. Buscar por Faixa de Preço\n" +
-                    "9. Sair\n");
+            System.out.println(BLUE + "\n=============================");
+            System.out.println("        MENU DE PRODUTOS        ");
+            System.out.println("=============================" + RESET);
+            System.out.println("1. Cadastrar Produto");
+            System.out.println("2. Buscar Produto por ID");
+            System.out.println("3. Listar Todos os Produtos");
+            System.out.println("4. Atualizar Produto");
+            System.out.println("5. Deletar Produto");
+            System.out.println("6. Buscar por Nome");
+            System.out.println("7. Buscar por Categoria");
+            System.out.println("8. Buscar por Faixa de Preço");
+            System.out.println("9. Sair\n");
             int opcao = lerEntradaInteira("Escolha uma opção: ");
             switch (opcao){
                 case 1 -> cadastrarProduto();
@@ -38,207 +46,189 @@ public class MenuProdutos {
                 case 7 -> buscarPorCategoria();
                 case 8 -> buscarPorFaixaPreco();
                 case 9 -> {
-                    System.out.println("Saindo do sistema!");
+                    System.out.println(YELLOW + "Saindo do sistema!" + RESET);
                     return;
                 }
-                default -> System.out.println("Opção inválida");
+                default -> System.out.println(RED + "Opção inválida" + RESET);
             }
+            pausaParaContinuar();
         }
     }
+
     private void cadastrarProduto() throws InterruptedException {
         boolean produtoCadastrado = false;
+        System.out.println(YELLOW + "=== Cadastro de Produto ===" + RESET);
 
         while(!produtoCadastrado){
-            System.out.println("=== Cadastro de Produto ===");
-            try{
+            try {
                 Produto produto = requisitarDados();
                 gerenciador.criar(produto);
-                System.out.println("Produto cadastrado com sucesso!");
-                System.out.println("Id gerado: " + produto.getId());
+                System.out.println(GREEN + "Produto cadastrado com sucesso!" + RESET);
+                System.out.println("ID gerado: " + produto.getId());
                 produtoCadastrado = true;
-            }catch (ValidacaoException e){
-                System.out.println("Erro ao cadastrar produto: " + e.getMessage());
-                Thread.sleep(1000);
+            } catch (ValidacaoException e) {
+                System.out.println(RED + "Erro ao cadastrar produto: " + e.getMessage() + RESET);
             }
         }
-
     }
-    public Produto requisitarDados(){
-        String nome, categoria;
-        double preco;
-        int quantidadeEstoque;
+    private <T> T requisitarEntradaComValidacao(String mensagem, Supplier<T> leitura, Consumer<T> validacao) {
+        while (true) {
+            try {
+                T valor = leitura.get();
+                validacao.accept(valor);
+                return valor;
+            } catch (ValidacaoException e) {
+                System.out.println(RED + e.getMessage() + RESET);
+            }
+        }
+    }
 
-        while(true) {
-            nome = lerEntradaString("Digite o nome: ");
-            try{
-                gerenciador.validarNome(nome);
-                break;
-            }catch (ValidacaoException e){
-                System.out.println(e.getMessage());
-            }
-        }
-        while(true) {
-            preco = lerEntradaDouble("Digite o preço: ");
-            try{
-                gerenciador.validarPreco(preco);
-                break;
-            }catch (ValidacaoException e){
-                System.out.println(e.getMessage());
-            }
-        }
-        while(true) {
-            quantidadeEstoque = lerEntradaInteira("Digite a quantidade: ");
-            try{
-                gerenciador.validarQuantidade(quantidadeEstoque);
-                break;
-            }catch (ValidacaoException e){
-                System.out.println(e.getMessage());
-            }
-        }
-        while(true) {
-            categoria = lerEntradaString("Digite a categoria: ");
+    public Produto requisitarDados() {
+        String nome = requisitarEntradaComValidacao(
+                "Digite o nome: ",
+                () -> lerEntradaString("Digite o nome: "),
+                gerenciador::validarNome
+        );
 
-            try{
-                gerenciador.validarCategoria(categoria);
-                break;
-            }catch (ValidacaoException e){
-                System.out.println(e.getMessage());
-            }
-        }
+        double preco = requisitarEntradaComValidacao(
+                "Digite o preço: ",
+                () -> lerEntradaDouble("Digite o preço: "),
+                gerenciador::validarPreco
+        );
+
+        int quantidadeEstoque = requisitarEntradaComValidacao(
+                "Digite a quantidade: ",
+                () -> lerEntradaInteira("Digite a quantidade: "),
+                gerenciador::validarQuantidade
+        );
+
+        String categoria = requisitarEntradaComValidacao(
+                "Digite a categoria: ",
+                () -> lerEntradaString("Digite a categoria: "),
+                gerenciador::validarCategoria
+        );
 
         return new Produto(nome, preco, quantidadeEstoque, categoria);
+    }
+
+
+    private void buscarProduto() {
+        System.out.println(YELLOW + "=== Busca de produto ===" + RESET);
+        Optional<Produto> produto = buscarProdutoPorId();
+        System.out.println(produto.map(Object::toString).orElse(RED + "Produto não encontrado!" + RESET));
+    }
+
+    private Optional<Produto> buscarProdutoPorId() {
+        while(true) {
+            int id = lerEntradaInteira("Id do produto (ou 0 para cancelar): ");
+            if(id == 0) return Optional.empty();
+
+            Optional<Produto> produto = gerenciador.buscarPorId(id);
+            if(produto.isPresent()) {
+                return produto;
+            } else {
+                System.out.println(RED + "Produto com id " + id + " não encontrado." + RESET);
+            }
+        }
+    }
+
+    private void listarProdutos() {
+        System.out.println(YELLOW + "=== Lista de produtos ===" + RESET);
+        gerenciador.listarTodos().forEach(System.out::println);
+        if (gerenciador.listarTodos().isEmpty()) {
+            System.out.println(YELLOW + "Lista de produtos vazia" + RESET);
+        }
+    }
+
+    private void atualizarProduto() {
+        System.out.println(YELLOW + "=== Atualizar produto ===" + RESET);
+        Optional<Produto> produtoExistente = buscarProdutoPorId();
+        if (produtoExistente.isPresent()) {
+            Produto novoProduto = requisitarDados();
+            novoProduto.setId(produtoExistente.get().getId());
+            if (gerenciador.atualizar(novoProduto)) {
+                System.out.println(GREEN + "Produto atualizado com sucesso!" + RESET);
+            } else {
+                System.out.println(RED + "Erro ao atualizar produto" + RESET);
+            }
+        } else {
+            System.out.println(RED + "Atualização cancelada" + RESET);
+        }
+    }
+
+    private void deletarProduto() {
+        System.out.println(YELLOW + "=== Deletar produto ===" + RESET);
+        Optional<Produto> produto = buscarProdutoPorId();
+        if (produto.isPresent()) {
+            int entrada = lerEntradaInteira("Tem certeza que deseja deletar o produto? (1=Sim, 2=Não): ");
+            if (entrada == 1) {
+                gerenciador.deletar(produto.get().getId());
+                System.out.println(GREEN + "Produto deletado com sucesso!" + RESET);
+            } else {
+                System.out.println(YELLOW + "Remoção cancelada!" + RESET);
+            }
+        } else {
+            System.out.println(RED + "Produto não encontrado para exclusão." + RESET);
+        }
+    }
+
+    private void buscarPorNome() {
+        System.out.println(YELLOW + "=== Buscar produto por nome ===" + RESET);
+        String nome = lerEntradaString("Nome do produto: ");
+        gerenciador.buscarPorNome(nome).forEach(System.out::println);
+        if(gerenciador.buscarPorNome(nome).isEmpty()){
+            System.out.println(YELLOW + "Não há produtos que contenha o nome " + nome + RESET);
+        }
+    }
+
+    private void buscarPorCategoria() {
+        System.out.println(YELLOW + "=== Buscar por categoria ===" + RESET);
+        String categoria = lerEntradaString("Categoria: ");
+        gerenciador.buscarPorCategoria(categoria).forEach(System.out::println);
+        if(gerenciador.buscarPorCategoria(categoria).isEmpty()){
+            System.out.println(YELLOW + "Não há produtos com a categoria " + categoria + RESET);
+        }
+    }
+
+    private void buscarPorFaixaPreco() {
+        System.out.println(YELLOW + "=== Buscar por faixa de preço ===" + RESET);
+        double precoMin = lerEntradaDouble("Preço mínimo: ");
+        double precoMax = lerEntradaDouble("Preço máximo: ");
+        gerenciador.buscarPorFaixaPreco(precoMin, precoMax).forEach(System.out::println);
+        if(gerenciador.buscarPorFaixaPreco(precoMin, precoMax).isEmpty()){
+            System.out.println(YELLOW + "Não há produtos com essa faixa de preço " + RESET);
+        }
     }
     private String lerEntradaString(String mensagem){
         System.out.print(mensagem);
         return scanner.nextLine();
     }
-    private double lerEntradaDouble(String mensagem){
-        boolean valorValido = false;
-        double valor = 0.0;
-        while(!valorValido){
-            System.out.print(mensagem);
-            try{
-                valor = Double.parseDouble(scanner.nextLine());
-                valorValido = true;
-            }catch (NumberFormatException e){
-                System.out.println("Entrada inválida. Por favor, digite um número decimal");
-            }
-        }
-        return valor;
-    }
 
-    private int lerEntradaInteira(String mensagem){
-        boolean valorValido =  false;
-        int valor = 0;
-
-        while(!valorValido){
-            System.out.print(mensagem);
-            try{
-                valor = Integer.parseInt(scanner.nextLine());
-                valorValido = true;
-            }catch (NumberFormatException e){
-                System.out.println("Entrada inválida. Por favor, digite um número inteiro.");
-            }
-        }
-        return valor;
-    }
-    private void buscarProduto(){
-        System.out.println("=== Busca de produto ===");
-        Optional<Produto> produto = buscarProdutoPorId();
-        System.out.println(produto.isEmpty()? "Busca cancelada!" : produto.get());
-    }
-    public Optional<Produto> buscarProdutoPorId(){
-        while(true){
-            try{
-                int id = lerEntradaInteira("Id do produto: ");
-                if(id == 0) return Optional.empty();
-                Optional<Produto> produto = gerenciador.buscarPorId(id);
-                if(produto.isEmpty()){
-                    throw new ProdutoException("Produto com id " + id + " não encontrado.");
-                }
-               return produto;
-            }catch(ProdutoException e){
-                System.out.println(e.getMessage() + " Insira um id válido ou digite 0 para cancelar");
+    private int lerEntradaInteira(String mensagem) {
+        while (true) {
+            try {
+                System.out.print(mensagem);
+                return Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println(RED + "Entrada inválida. Por favor, digite um número inteiro." + RESET);
             }
         }
     }
-    private void listarProdutos(){
-        System.out.println("=== Lista de produtos ===");
-        if(gerenciador.listarTodos().isEmpty()){
-            System.out.println("Lista de produtos vazia");
-        }else{
-            gerenciador.listarTodos().forEach(System.out::println);
-        }
-    }
-    private void atualizarProduto(){
-        System.out.println("=== Atualizar produto ===");
-        Optional<Produto> produtoExistente = buscarProdutoPorId();
-        Produto novoProduto = requisitarDados();
-        if(produtoExistente.isPresent()){
-            novoProduto.setId(produtoExistente.get().getId());
 
-            if(gerenciador.atualizar(novoProduto)){
-                System.out.println("Produto atualizado com sucesso!");
-            }else{
-                System.out.println("Erro ao atualizar produto");
+    private double lerEntradaDouble(String mensagem) {
+        while (true) {
+            try {
+                System.out.print(mensagem);
+                return Double.parseDouble(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println(RED + "Entrada inválida. Por favor, digite um número decimal." + RESET);
             }
         }
-
-    }
-    private void deletarProduto(){
-        System.out.println("=== Deletar produto ===");
-        Optional<Produto> produto = buscarProdutoPorId();
-        if(produto.isPresent()){
-            int entrada = lerEntradaInteira("Tem certeza que deseja deletar o produto com id " + produto.get().getId() + "? Digite 1 para 'sim' ou 2 para 'não'.");
-
-            while(true){
-                if(entrada == 1){
-                    if(gerenciador.deletar(produto.get().getId())){
-                        System.out.println("Produto deletado com sucesso! ");
-                    }else{
-                        System.out.println("Erro ao deletar produto. Por favor tente novamente");
-                    }
-                    break;
-                }else if(entrada == 2){
-                    System.out.println("Remoção cancelada!");
-                    break;
-                }else{
-                    entrada = lerEntradaInteira("Entrada inválida! Digite 1 para remover o produto e 2 para cancelar remoção");
-                }
-            }
-        }else{
-            System.out.println("Remoção cancelada!");
-        }
-    }
-    private void buscarPorNome(){
-        System.out.println("=== Buscar produto por nome ===");
-        String nome = lerEntradaString("Nome do produto: ");
-        if(gerenciador.buscarPorNome(nome).isEmpty()){
-            System.out.println("Não há produtos com o nome informado");
-        }else{
-            gerenciador.buscarPorNome(nome).forEach(System.out::println);
-        }
-    }
-    private void buscarPorCategoria(){
-        System.out.println("=== Buscar por categoria ===");
-        String categoria = lerEntradaString("Categoria: ");
-        if(gerenciador.buscarPorCategoria(categoria).isEmpty()){
-            System.out.println("Não há produtos com a categoria informada");
-        }else{
-            gerenciador.buscarPorCategoria(categoria).forEach(System.out::println);
-        }
-    }
-    private void buscarPorFaixaPreco(){
-        System.out.println("=== Buscar por faixa de preço ===");
-        double precoMin = lerEntradaDouble("Preço mínimo: ");
-        double precoMax = lerEntradaDouble("Preço maximo: ");
-        if(gerenciador.buscarPorFaixaPreco(precoMin, precoMax).isEmpty()){
-            System.out.println("Não há produtos com o preço entre R$" + precoMin + " e R$" + precoMax);
-        }else{
-            gerenciador.buscarPorFaixaPreco(precoMin, precoMax).forEach(System.out::println);
-        }
-
     }
 
+    private void pausaParaContinuar() {
+        System.out.println(YELLOW + "\nPressione Enter para continuar..." + RESET);
+        scanner.nextLine();
+    }
 
 }
