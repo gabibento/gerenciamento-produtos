@@ -128,12 +128,12 @@ Essas validações ajudam a manter a integridade dos dados.
 - **`ValidacaoException`**: Foi criada para capturar erros específicos de validação de dados. Quando o usuário insere dados inválidos, uma mensagem clara é retornada informando o erro.
 - **`ProdutoException`**: Essa exceção foi criada para o caso de um produto não ser encontrado pelo ID especificado. Quando o usuário tenta acessar ou manipular um produto que não existe, a `ProdutoException` é lançada para alertar o usuário de que o produto não foi encontrado.
 
-### 6. **Uso de Cores no Console**
-Cores foram utilizadas para melhorar a interação no console:
-
-- **Verde** para sucesso.
-- **Vermelho** para erros.
-- **Amarelo** para mensagens informativas.
+### 6. Uso de Cores ANSI
+O sistema utiliza **códigos de cores ANSI** para dar destaque a mensagens exibidas no terminal, como mensagens de erro, sucesso ou alertas. Os códigos ANSI permitem alterar a cor do texto no terminal, proporcionando uma interface mais amigável e fácil de navegar. 
+- **Azul (`\033[34m`)**: Usado para destacar o título do menu e tornar a interface visualmente mais atraente.
+- **Verde (`\033[32m`)**: Usado para indicar sucesso em operações, como "Produto cadastrado com sucesso".
+- **Vermelho (`\033[31m`)**: Utilizado para exceções.
+- **Amarelo (`\033[33m`)**: Usado para informações gerais ou mensagens de alerta.
 
 ### 7. **Estrutura do Menu**
 O menu interativo permite ao usuário realizar operações como cadastrar, atualizar, excluir ou buscar produtos. O programa continua executando até que o usuário escolha sair.
@@ -147,3 +147,7 @@ O menu interativo permite ao usuário realizar operações como cadastrar, atual
   <sub><b>Gabriella Maurea Bento</b></sub><br>
   <sub>RA: 1788213</sub><br>
 </div>
+
+## Licença
+
+Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
